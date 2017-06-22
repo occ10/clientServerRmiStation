@@ -1,0 +1,4 @@
+Temperatura:22ºC
+Humedad:22
+Luminosidad:33
+Pantalla=soy estacion

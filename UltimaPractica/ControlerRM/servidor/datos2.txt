@@ -1,0 +1,4 @@
+Temperatura:40 ºC
+Humedad:22
+Luminosidad:33
+Pantalla=lo que sea

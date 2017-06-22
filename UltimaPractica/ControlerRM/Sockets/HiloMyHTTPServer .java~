@@ -1,0 +1,162 @@
+
+import java.io.*;
+import java.net.*;
+
+public class HiloMyHTTPServer {
+
+   private Socket skCliente;
+   public MyHTTPServer(Socket p_cliente)
+	{
+		this.skCliente = p_cliente;
+	}
+
+
+    /*
+     * Lee datos del socket. Supone que se le pasa un buffer con hueco 
+     *	suficiente para los datos. Devuelve el numero de bytes leidos o
+     * 0 si se cierra fichero o -1 si hay error.
+     */
+
+
+    public void run() {
+
+
+        int resultado = 0;
+        String Cadena = "", fich = "defect.html";
+        FileReader fr = null;
+
+           
+                Cadena = this.leeSocket(skCliente, Cadena);
+                System.out.println(Cadena);
+
+                if (Cadena.contains("GET")) {
+
+                    if (Cadena.contains("controladorSD")) {
+
+                               Socket controler = new Socket("192.168.181.128", Integer.parseInt("9998"));
+                                
+                              Cadena = this.leeSocket (controler, Cadena);
+                               
+                               while(Cadena!=null){
+
+                                this.escribeSocket(skCliente, Cadena);
+                                Cadena = this.leeSocket (controler, Cadena);
+                                   
+                                
+                                
+                                
+                               }
+
+                             //sr.leeSocket(skCliente, Cadena); 
+                             controler.close(); 
+                             //System.exit(0);	
+
+                    } else {
+                        try {
+                           if(Cadena.contains("index.html")){
+                             fich="index.html";
+                           }
+                           if (Cadena.contains("page1.html")){
+                            fich="index.html";
+                           }
+                           if (Cadena.contains("error.html")){
+                            fich="error.html";
+                           }
+//System.out.println(fich);
+                            fr = new FileReader(fich);
+                            BufferedReader entrada = new BufferedReader(fr);
+String cadena = "HTTP/1.1 200 OK Date: Sat, 15 Jan 2000 14:37:12 GMT Server : Microsoft-IIS/2.0 Content-Type : text/HTML Content-Length : 1245 Last-Modified : Fri, 14 Jan 2000 08:25:13 GMT";
+                            
+                            this.escribeSocket(skCliente, cadena);
+                            cadena = entrada.readLine();
+
+                            while (cadena != null) {
+                                this.escribeSocket(skCliente, cadena);
+                                cadena = entrada.readLine();
+
+                            }
+
+                        } catch (FileNotFoundException e) {
+
+                              
+                            System.out.println(e.getMessage());
+                        } finally {
+                            try {
+                                if (fr != null) {
+                                    fr.close();
+                                }
+                            } catch (IOException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+                    }
+
+                } else {
+ //System.out.println("Escucho el puerto ");
+                    this.escribeSocket2(skCliente, "405 Method Not Allowed");
+
+                }
+
+                this.leeSocket(skCliente, Cadena);
+                                        //System.out.println(Cadena);
+
+                skCliente.close();
+                //System.exit(0);
+
+
+}
+
+    public String leeSocket(Socket p_sk, String p_Datos) {
+
+        String cad = "", body = "", respuesta = "";
+        byte bytedata[] = new byte[256];
+        int leido = 0;
+        try {
+            InputStream aux = p_sk.getInputStream();
+            DataInputStream flujo = new DataInputStream(aux);
+
+            //p_Datos = new String();
+            leido = flujo.read(bytedata);
+
+            if (leido > 0) {
+                p_Datos = new String(bytedata, 0, (leido - 1));
+            }else
+                p_Datos=null;   
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.toString());
+        }
+
+        return p_Datos;
+    }
+
+    /*
+     * Escribe dato en el socket cliente. Devuelve numero de bytes escritos,
+     * o -1 si hay error.
+     */
+    public void escribeSocket(Socket p_sk, String p_Datos) {
+        PrintWriter out = null;
+        try {
+            out = new PrintWriter(p_sk.getOutputStream(), true);
+
+            out.println(p_Datos);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.toString());
+        }
+        return;
+    }
+
+    public void escribeSocket2(Socket p_sk, String p_Datos) {
+        try {
+            OutputStream aux = p_sk.getOutputStream();
+            DataOutputStream flujo = new DataOutputStream(aux);
+            flujo.writeUTF(p_Datos);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.toString());
+        }
+        return;
+    }
+
+    
+}
